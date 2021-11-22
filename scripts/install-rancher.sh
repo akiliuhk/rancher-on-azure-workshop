@@ -4,8 +4,8 @@
 echo "Installing Kubernetes Client Tools - kubectl and helm ..."
 
 curl -sLS https://dl.get-arkade.dev | sh
-sudo mv arkade /usr/local/bin/arkade
-sudo ln -sf /usr/local/bin/arkade /usr/local/bin/ark
+#sudo mv arkade /usr/local/bin/arkade
+#sudo ln -sf /usr/local/bin/arkade /usr/local/bin/ark
 
 ark get helm
 sudo mv $HOME/.arkade/bin/helm /usr/local/bin/
@@ -65,7 +65,8 @@ done
 echo "Install Rancher ${RANCHER_VERSION} ..."
 sudo zypper install -y jq
 RANCHER_IP=`curl -s -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance/network?api-version=2017-08-01" | jq -r '.interface[0].ipv4.ipAddress[].publicIpAddress'`
-RANCHER_FQDN=rancher.$RANCHER_IP.sslip.io
+#RANCHER_FQDN=rancher.$RANCHER_IP.sslip.io
+RANCHER_FQDN=edb-rancher.example.com
 helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 
 helm install rancher rancher-stable/rancher \
