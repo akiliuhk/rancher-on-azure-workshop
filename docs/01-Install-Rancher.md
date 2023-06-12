@@ -4,167 +4,83 @@ Duration: 30 minutes
 
 At this point, we are going to setup an instance of SUSE Rancher Server on Azure.
 
-## Task 1: Create a Linux Instance on Azure
+# Deploy SUSE Rancher
 
-In this task, let's create a linux instance on Azure to run SUSE Rancher.
+### Task 1: Setup Azure Cloud Shell
 
+1. Open a browser, navigate to the link https://portal.azure.com/, and then sign In with your Azure credentials.
 
+   - Azure Usename/Email:
+   - Azure Password:
 
-### Create Resource Group and a virtual network
+2. If you see the pop-up **Stay Signed in?**, click Yes.
 
-First, create a resource group nearest to where you are.
+3. If you see the pop-up **You have free Azure Advisor recommendations!**, close the window to continue the lab.
 
-```bash
-az group create --name Rancher --location southeastasia
-```
+4. If a **Welcome to Microsoft Azure** popup window appears, click **Maybe Later** to skip the tour.
 
-Let's create a default virtual network named **mylab-vnet** with the a subnet to host Rancher VM instance in this workshop.
+5. In the **Azure portal**, open the **Azure Cloud Shell** by clicking on the cloud shell icon in the top menu bar. Alternatively, you can open cloud shell by navigating to `https://shell.azure.com`.
 
-```bash
-az network vnet create --resource-group Rancher \
-  --name mylab-vnet --address-prefix 10.0.0.0/16 \
-  --subnet-name rancher-subnet --subnet-prefix 10.0.0.0/24
-```
+   ![msazure-cloudshell](./images/msazure-cloudshell.png)
 
+6. After launching the Azure Cloud Shell, select the **Bash** option. Now on You have no storage mounted dialog box click on **Show advanced settings**. Select Create new under Storage account and provide values as below:
 
+   - **Storage account** : **any-of-your-choose-1-random-numbers**
+   - **File Share** : **blob**
 
-### Create a Linux virtual machine using OpenSUSE Leap 15.3
+   > **Note**: Storage account name should be always unique, you can get the Deployement Id from the **Environment Details** tab.
 
-Create an OpenSUSE Leap 15.3 Linux virtual machine instance attached to the rancher-subnet network. We will deploy Rancher Server on this VM.
+   ![Cloud Shell Bash Window](https://github.com/CloudLabs-MCW/MCW-Cloud-native-applications/blob/fix/Hands-on%20lab/media/b4-image36.png?raw=true)
 
-```bash
-az vm create --resource-group Rancher \
-  --name rancher \
-  --admin-username suse \
-  --image SUSE:opensuse-leap-15-3:gen1:2021.10.12 \
-  --size Standard_B4ms \
-  --generate-ssh-keys \
-  --public-ip-sku Basic \
-  --vnet-name mylab-vnet \
-  --subnet rancher-subnet \
-  --os-disk-size-gb 50 \
-  --verbose 
-```
+### Task 2 - Clone GitHub Repository 
 
-It takes a 2-3 minutes to create this VM and supporting resources. The following example output shows the VM create operation was successful.
+**TIPS**: If you want to setup the Rancher Server on Azure automatically (task 1 and 2), we have prepared a script for you. To do this, please follow the steps below.
 
-```
-{
-  "fqdns": "",
-  "id": "/subscriptions/25283eec-b18f-4965-936c-7493761298c5/resourceGroups/Rancher/providers/Microsoft.Compute/virtualMachines/rancher",
-  "location": "southeastasia",
-  "macAddress": "00-0D-3A-A0-DA-67",
-  "powerState": "VM running",
-  "privateIpAddress": "10.0.0.4",
-  "publicIpAddress": "20.212.112.32",
-  "resourceGroup": "Rancher",
-  "zones": ""
-}
-Command ran in 92.491 seconds (init: 0.115, invoke: 92.376)
-```
-
-
-
-### Open port 443 for web traffic
-
-By default, only SSH connections are opened when you create a Linux VM in Azure.  Let's configure this VM to open TCP port 443 (https protocol) for use with Rancher Server instance:
-
-```bash
-az vm open-port --port 443 --resource-group rancher --name rancher
-```
-
-
-
-### Connect to virtual machine
-
-SSH to your VM as usual. Use the public IP address of your VM as noted in the previous output in your ssh command. Alternatively, use the script below to obtain the VM IP address and ssh into it.
-
-```bash
-export RANCHER_IP=$(az vm show -d -g Rancher -n rancher --query publicIps -o tsv)
-ssh -o StrictHostKeyChecking=no suse@$RANCHER_IP
-```
-
-A new command prompt `suse@rancher:~>` should be shown as example below, indicating you have connected to the virtual machine successfully.
-
-```
-openSUSE Leap 15.3 x86_64 (64-bit)
-
-If you are using extensions consider to enable the auto-update feature
-of the extension agent and restarting the service. As root execute:
-
-  - sed -i s/AutoUpdate.Enabled=n/AutoUpdate.Enabled=y/ /etc/waagent.conf
-  - rcwaagent restart
-
-As "root" use the:
-
-- zypper command for package management
-- yast command for configuration management
-
-Have a lot of fun...
-suse@rancher:~>
-```
-
-
-
-## Task 2: Install Rancher Server on Azure VM
-
-In this task, you are going to run the scripts provided in the `rancher` virtual machine terminal. SSH into this VM as instructed in Task 1 if you have not done yet.
-
-### Install software required for running script
-
-Install the software required to execute the Rancher installation script.
-
-```bash
-sudo zypper install -y git jq
-```
-
-### Download Rancher installation script
+1. Open Azure Cloud Shell
+2. In the Cloud Shell bash terminal, run the following command.
 
 ```bash
 git clone https://github.com/dsohk/rancher-on-azure-workshop/
 cd rancher-on-azure-workshop/scripts
 ```
 
-### Install Rancher Server
+![Excercise1-task1-git-clone-azure-workshop](images/Excercise1-task1-git-clone-azure-workshop-16391283982413.png)
+
+### Task 2 - Install Rancher using script.
+
+Run the command to create a resource group on Azure, deploy a VM within this group and install Rancher Server on this VM. This step will take about 10-15 mins to finish.
 
 ```bash
-./install-rancher.sh
+./startlab.sh
 ```
 
-This script will
-* Install Kubernetes tools (kubectl and helm),
-* Deploy Rancher Install on RKE2 cluster.
+![Excercise1-task1-install-rancher-install-script](images/Excercise1-task1-install-rancher-install-script.png)
 
-In about 5-10 minutes, your Rancher Server should be ready. If you see the example output shown below, this means you have successfully deployed Rancher Server on the virtual machine. Note down the Rancher URL and initial bootstrap password.
+![Rancher-Success-and-URL](images/Rancher-Success-and-URL.png)
 
-```
----------------------------------------------------------
-Your Rancher Server is ready.
+Rancher is now deployed. We are provided with Rancher URL and Bootstrap password. Open the Rancher URL is new browser Windows and use the Rancher Bootstrap password to login to Rancher. Task 3 cover Rancher Login
 
-Your Rancher Server URL: https://rancher.52.187.36.166.sslip.io
-Bootstrap Password: xk5rxg9grjrf9522752t4rqd84b46krhg86mwgvtvbzsdw49bjlzmb
----------------------------------------------------------
-```
+## Task 3 - Login to Rancher Server
 
-Open a browser and navigate to the Rancher Server URL. Type **thisisunsafe** at the page where there's invalid SSL warning to continue. You will be leading to a first-time setup page of Rancher like below. Enter your bootstrap password to continue.
+1. Open a browser and navigate to the Rancher Server URL. Type **thisisunsafe** at the page where there's invalid SSL warning to continue. You will be leading to a first-time setup page of Rancher like below. Enter your bootstrap password to continue..
 
-![rancher-firsttime-setup-page](./images/rancher-firsttime-setup-page.png)
+![Excercise1-task1-rancher-login-bootstrap-password](images/Excercise1-task1-rancher-login-bootstrap-password.png)
 
-Then, setup your own password, accept the default Server URL and agree the terms and conditions for using Rancher on the next page to continue.
+2. Set your own password.
 
-![rancher-setup-password](./images/rancher-setup-password.png)
+![Excercise1-task1-rancher-login-setting-own-password](images/Excercise1-task1-rancher-login-setting-own-password.png)
 
-You can then land on the **Home** page of Rancher Server.
+3. Successful Login and Rancher Homepage.
 
-![rancher-homepage](./images/rancher-homepage.png)
-
-
+![Excercise1-task1-rancher-login-success-home-page](images/Excercise1-task1-rancher-login-success-home-page-16391272154692.png)
 
 ### Next steps
 
-In this exercise, you deployed Rancher Server instance. In the next exercise, you will configure Rancher Server to create a few VMs on Azure and automate provisioning of a Kubernetes cluster, which integrates with Azure Load Balancer, on these VMs.
+In this exercise, you have deployed Rancher Server instance. 
 
+In the next exercise, you will configure Rancher Server to create a few VMs on Azure and automate provisioning of a Kubernetes cluster, which integrates with Azure Load Balancer, on these VMs.
 
+Now, you can move ahead to the [second exercise](./02-Provision-Kubernetes.md) of the lab.
 
 
 
